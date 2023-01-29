@@ -1,0 +1,23 @@
+# push messages
+messaging:
+  events:
+    connect: # vehicle connect event
+      title: Car connected
+      msg: "Car connected, mode:${mode}"
+    guest:
+      title: Guest connected
+      msg: "Guest connected, mode:${mode}"
+  services:
+  # - type: pushover
+  #   app: # app id
+  #   recipients:
+  #   - # list of recipient ids
+  # - type: telegram
+  #   token: # bot id
+  #   chats:
+  #   - # list of chat ids
+  # - type: email
+  #   uri: smtp://<user>:<password>@<host>:<port>/?fromAddress=<from>&toAddresses=<to>
+    - type: script
+      cmdline: /home/pi/prj/evcc/evcc_message
+      timeout: 50s

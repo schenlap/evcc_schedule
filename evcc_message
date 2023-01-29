@@ -1,14 +1,23 @@
 #!/bin/bash
-ip=localhost:7070
 
-if [[ "$2" == *" connected, mode:pv"* ]] # guest and car
+ip=localhost:7070
+log="/tmp/evcc_targettime.log"
+now=$(date)
+
+echo "message received: $1 - $now" >> $log
+if [[ "$2" == *"connected, mode:pv"* ]] # guest and car
 then
 	week_day=$(date +%w) #get the week day as a number from 0 to 6 starting with 0 as Sunday
 	if [[ $week_day -ge 0 && $week_day -le 4 ]] # from monday to thursday
 	then
 		targettime=$(date -d "+1 day" -u +"%Y-%m-%d")T06:00:00Z
-		curl -X POST http://$ip/api/loadpoints/1/target/time/$targettime
+	else
+		targettime=$(date -d "+2 day" -u +"%Y-%m-%d")T07:00:00Z
 	fi
+	curl -X POST http://$ip/api/loadpoints/1/target/time/$targettime > /dev/null
+	echo "Setting targettime: " $targettime >> $log
+else
+	echo "Wrong message: " $2 >> $log
 fi
 
 
