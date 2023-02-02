@@ -2,7 +2,16 @@
 
 ip=localhost:7070
 log="/tmp/evcc_targettime.log"
+set_targettime="06:00:00"
+
 now=$(date)
+rfc3339="$(date --rfc-3339=seconds)"
+diff="${rfc3339:20:2}"
+hour="${set_targettime:0:2}"
+calc=$(($hour - $diff))
+t1="$(printf "%02d" "$calc")"
+t2="${set_targettime:2:6}"
+delta=$(( $(date +%s) - $(date -d "$(date +"%Y-%m-%d") $set_targettime" +%s) ))
 
 echo "message received: $1 - $now" >> $log
 if [[ "$2" == *"connected, mode:pv"* ]] # guest and car
@@ -10,14 +19,17 @@ then
 	week_day=$(date +%w) #get the week day as a number from 0 to 6 starting with 0 as Sunday
 	if [[ $week_day -ge 0 && $week_day -le 4 ]] # from monday to thursday
 	then
-		targettime=$(date -d "+1 day" -u +"%Y-%m-%d")T06:00:00Z
+		if [[ $delta -lt -300 ]]
+		then
+			targettime=$(date +"%Y-%m-%d")T${t1}${t2}Z
+		else
+			targettime=$(date -d "+1 day" +"%Y-%m-%d")T${t1}${t2}Z
+		fi
 	else
-		targettime=$(date -d "+2 day" -u +"%Y-%m-%d")T07:00:00Z
+		targettime=$(date -d "+2 day" +"%Y-%m-%d")T${t1}${t2}Z
 	fi
 	curl -X POST http://$ip/api/loadpoints/1/target/time/$targettime > /dev/null
 	echo "Setting targettime: " $targettime >> $log
 else
 	echo "Wrong message: " $2 >> $log
 fi
-
-
